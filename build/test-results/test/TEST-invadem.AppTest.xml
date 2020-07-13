@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="invadem.AppTest" tests="14" skipped="1" failures="0" errors="0" timestamp="2019-11-21T10:40:55" hostname="junhaos-MacBook-Pro.local" time="6.318">
+  <properties/>
+  <testcase name="testBarrierCollision" classname="invadem.AppTest" time="1.23"/>
+  <testcase name="setBarrier" classname="invadem.AppTest" time="0.474"/>
+  <testcase name="testRun" classname="invadem.AppTest" time="0.361"/>
+  <testcase name="entensionThird" classname="invadem.AppTest" time="0.38"/>
+  <testcase name="testImage" classname="invadem.AppTest" time="0.35"/>
+  <testcase name="testGameOver" classname="invadem.AppTest" time="0.352"/>
+  <testcase name="testCheckProjectile" classname="invadem.AppTest" time="0.35"/>
+  <testcase name="checkNormalInvaderScore" classname="invadem.AppTest" time="0.355"/>
+  <testcase name="extension" classname="invadem.AppTest" time="0.357"/>
+  <testcase name="checkScore" classname="invadem.AppTest" time="0.356"/>
+  <testcase name="moveLeft" classname="invadem.AppTest" time="0.369"/>
+  <testcase name="setBarrierTopImage" classname="invadem.AppTest" time="0.386"/>
+  <testcase name="testTankFire" classname="invadem.AppTest" time="0.395"/>
+  <testcase name="testTankLife" classname="invadem.AppTest" time="0.599">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[Class transformation time: 0.311086255s for 2433 classes or 1.2786118166872173E-4s per class
+]]></system-out>
+  <system-err><![CDATA[java.lang.NullPointerException
+	at invadem.App.draw(App.java:583)
+	at processing.core.PApplet.handleDraw(PApplet.java:2426)
+	at processing.awt.PSurfaceAWT$12.callDraw(PSurfaceAWT.java:1557)
+	at processing.core.PSurfaceNone$AnimationThread.run(PSurfaceNone.java:316)
+java.lang.NullPointerException
+	at invadem.App.draw(App.java:583)
+	at processing.core.PApplet.handleDraw(PApplet.java:2426)
+	at processing.awt.PSurfaceAWT$12.callDraw(PSurfaceAWT.java:1557)
+	at processing.core.PSurfaceNone$AnimationThread.run(PSurfaceNone.java:316)
+java.lang.NullPointerException
+	at invadem.App.draw(App.java:583)
+	at processing.core.PApplet.handleDraw(PApplet.java:2426)
+	at processing.awt.PSurfaceAWT$12.callDraw(PSurfaceAWT.java:1557)
+	at processing.core.PSurfaceNone$AnimationThread.run(PSurfaceNone.java:316)
+java.lang.NullPointerException
+	at invadem.App.draw(App.java:583)
+	at processing.core.PApplet.handleDraw(PApplet.java:2426)
+	at processing.awt.PSurfaceAWT$12.callDraw(PSurfaceAWT.java:1557)
+	at processing.core.PSurfaceNone$AnimationThread.run(PSurfaceNone.java:316)
+java.lang.NullPointerException
+	at invadem.App.draw(App.java:583)
+	at processing.core.PApplet.handleDraw(PApplet.java:2426)
+	at processing.awt.PSurfaceAWT$12.callDraw(PSurfaceAWT.java:1557)
+	at processing.core.PSurfaceNone$AnimationThread.run(PSurfaceNone.java:316)
+]]></system-err>
+</testsuite>

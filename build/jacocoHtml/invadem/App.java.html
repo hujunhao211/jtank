@@ -1,0 +1,742 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>App.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Scaffold-3</a> &gt; <a href="index.source.html" class="el_package">invadem</a> &gt; <span class="el_source">App.java</span></div><h1>App.java</h1><pre class="source lang-java linenums">package invadem;
+import processing.core.PApplet;
+import processing.core.PFont;
+import processing.core.PImage;
+import java.util.Random;
+import java.util.ArrayList;
+
+<span class="fc" id="L8">abstract class DifficultState{</span>
+    public abstract void changeTank(Tank tank);
+}
+<span class="fc" id="L11">class Easy extends DifficultState{</span>
+    @Override
+    public void changeTank(Tank tank){
+<span class="fc" id="L14">        tank.setTankFireRate(0);</span>
+<span class="fc" id="L15">    }</span>
+}
+<span class="fc" id="L17">class Normal extends DifficultState{</span>
+    @Override
+    public void changeTank(Tank tank){
+<span class="fc" id="L20">        tank.setTankFireRate(10);</span>
+<span class="fc" id="L21">    }</span>
+}
+
+<span class="fc" id="L24">class Hard extends DifficultState{</span>
+    @Override
+    public void changeTank(Tank tank){
+<span class="fc" id="L27">        tank.setTankFireRate(20);</span>
+<span class="fc" id="L28">    }</span>
+}
+public class App extends PApplet {
+    private Tank tank;
+    PImage sucess;
+    ArrayList&lt;PImage&gt; tankLife;
+    public static DifficultState state;
+<span class="fc" id="L35">    public static boolean drawing = false;</span>
+<span class="fc" id="L36">    public static boolean choose = false;</span>
+<span class="fc" id="L37">    public static int restart = 0;</span>
+    public static int mousex;
+    public static int mousey;
+    public static int score;
+    public static int highestScore;
+<span class="fc" id="L42">    public static int time = 0;</span>
+<span class="fc" id="L43">    public static int counterTime = 0;</span>
+    private static int invaderFire;
+<span class="fc" id="L45">    private static int fireRate = 360;</span>
+    private static boolean find;
+<span class="fc" id="L47">    private static int countMove = 30;</span>
+<span class="fc" id="L48">    private static int counter = 0;</span>
+    // 3 boolean to store whether left right fire is pressed
+    private boolean moveLeft;
+    private boolean moveRight;
+    private boolean fire;
+    private Projectile projectile;
+    private PowerProjectile powerProjectile;
+    public ArrayList&lt;Invader&gt; invaders;
+    public ArrayList&lt;Barrier&gt; barriers;
+    public ArrayList&lt;BarrierLifeTime&gt; barrierLifeTimes;
+<span class="fc" id="L58">    public ArrayList&lt;Projectile&gt; projectiles = new ArrayList&lt;&gt;();</span>
+    public ArrayList&lt;Invader&gt; removeInvader;
+    public ArrayList&lt;Projectile&gt; removeProjectile;
+    private PFont font;
+    static long currentTime;
+<span class="fc" id="L63">    public boolean drawMenu = true;</span>
+<span class="fc" id="L64">    public App() {</span>
+        //Set up your objects
+<span class="fc" id="L66">        tankLife = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L67">        score = 0;</span>
+<span class="fc" id="L68">        highestScore = 10000;</span>
+<span class="fc" id="L69">    }</span>
+    public boolean getFind(){
+<span class="fc" id="L71">        return find;</span>
+    }
+    public boolean getFire(){
+<span class="nc" id="L74">        return fire;</span>
+    }
+
+<span class="fc bfc" id="L77" title="All 2 branches covered.">    public boolean canFire(){ return invaderFire % fireRate == 0; }</span>
+
+    public void loadArmouedInvader(Invader invader){
+<span class="fc" id="L80">        invader.setMoveDown(loadImage(&quot;invader2_armoured.png&quot;));</span>
+<span class="fc" id="L81">    }</span>
+
+    public void loadPowerInvader(Invader invader){
+<span class="fc" id="L84">        invader.setMoveDown(loadImage(&quot;invader2_power.png&quot;));</span>
+<span class="fc" id="L85">    }</span>
+
+    public void loadInvaders(Invader invader){
+<span class="fc" id="L88">        invader.setMoveDown(loadImage(&quot;invader2.png&quot;));</span>
+<span class="fc" id="L89">    }</span>
+
+    public void loadPicture(Invader invader){
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (invader instanceof ArmouredInvader) {</span>
+<span class="fc" id="L93">            loadArmouedInvader(invader);</span>
+        }
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        else if(invader instanceof PowerInvader) {</span>
+<span class="fc" id="L96">            loadPowerInvader(invader);</span>
+        }
+        else {
+<span class="fc" id="L99">            loadInvaders(invader);</span>
+        }
+<span class="fc" id="L101">    }</span>
+
+    public void loadInvader(){
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        for (int i = 0; i &lt; invaders.size(); i++){</span>
+<span class="fc" id="L105">            loadPicture(invaders.get(i));</span>
+        }
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        for (int i = 0; i &lt; invaders.size(); i++){</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">            if (i &lt; 10) {</span>
+<span class="fc" id="L109">                invaders.get(i).setMoveHorizontal(loadImage(&quot;invader1_armoured.png&quot;));</span>
+            }
+<span class="fc bfc" id="L111" title="All 2 branches covered.">            else if(i &lt; 20) {</span>
+<span class="fc" id="L112">                invaders.get(i).setMoveHorizontal(loadImage(&quot;invader1_power.png&quot;));</span>
+            }
+            else {
+<span class="fc" id="L115">                invaders.get(i).setMoveHorizontal(loadImage(&quot;invader1.png&quot;));</span>
+            }
+        }
+<span class="fc" id="L118">    }</span>
+
+    public Projectile getProjectile(){
+<span class="fc" id="L121">        return this.projectile;</span>
+    }
+
+    public void mouseMoved(){
+<span class="fc" id="L125">        this.mousex = mouseX;</span>
+<span class="fc" id="L126">        this.mousey = mouseY;</span>
+<span class="fc" id="L127">    }</span>
+
+    public void mouseClicked() {
+<span class="pc bpc" id="L130" title="1 of 4 branches missed.">        if (mousex &gt; 189 &amp;&amp; mousex &lt; 455) {</span>
+<span class="fc bfc" id="L131" title="All 4 branches covered.">            if (mousey &gt; 230 &amp;&amp; mousey &lt; 250) {</span>
+<span class="fc" id="L132">                choose = true;</span>
+            }
+        }
+<span class="fc bfc" id="L135" title="All 2 branches covered.">        if (choose) {</span>
+<span class="pc bpc" id="L136" title="1 of 4 branches missed.">            if (mousex &gt; 200 &amp;&amp; mousex &lt; 280) {</span>
+<span class="pc bpc" id="L137" title="1 of 4 branches missed.">                if (mousey &gt; 161 &amp;&amp; mousey &lt; 179) {</span>
+<span class="fc" id="L138">                    drawing = true;</span>
+<span class="fc" id="L139">                    state = new Easy();</span>
+                }
+<span class="pc bpc" id="L141" title="1 of 4 branches missed.">                else if (mousey &gt; 261 &amp;&amp; mousey &lt; 282) {</span>
+<span class="fc" id="L142">                    drawing = true;</span>
+<span class="fc" id="L143">                    state = new Normal();</span>
+                }
+<span class="pc bpc" id="L145" title="2 of 4 branches missed.">                else if (mousey &gt; 361 &amp;&amp; mousey &lt; 381) {</span>
+<span class="fc" id="L146">                    drawing = true;</span>
+<span class="fc" id="L147">                    state = new Hard();</span>
+                }
+            }
+        }
+<span class="fc" id="L151">    }</span>
+    //    set barrier left part image depends on the liftime
+    public void setBarrierLeft(Barrier barrier){
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        if (barrier.barrierLeft.getLifeTime() == 3) {</span>
+<span class="fc" id="L155">            barrier.barrierLeft.setImage(barrier.barrierLeft.firstImage);</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        } else if (barrier.barrierLeft.getLifeTime() == 2) {</span>
+<span class="fc" id="L157">            barrier.barrierLeft.setImage(barrier.barrierLeft.SecondImage);</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">        } else if (barrier.barrierLeft.getLifeTime() == 1) {</span>
+<span class="fc" id="L159">            barrier.barrierLeft.setImage(barrier.barrierLeft.thirdImage);</span>
+        }
+<span class="fc" id="L161">    }</span>
+    //    set barrier right part image depends on the liftime
+    public void setBarrierRight(Barrier barrier){
+<span class="fc bfc" id="L164" title="All 2 branches covered.">        if (barrier.barrierRight.getLifeTime() == 3) {</span>
+<span class="fc" id="L165">            barrier.barrierRight.setImage(barrier.barrierRight.firstImage);</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">        } else if (barrier.barrierRight.getLifeTime() == 2) {</span>
+<span class="fc" id="L167">            barrier.barrierRight.setImage(barrier.barrierRight.SecondImage);</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">        } else if (barrier.barrierRight.getLifeTime() == 1) {</span>
+<span class="fc" id="L169">            barrier.barrierRight.setImage(barrier.barrierRight.thirdImage);</span>
+        }
+<span class="fc" id="L171">    }</span>
+
+    public void setBarrierTop(Barrier barrier){
+<span class="fc bfc" id="L174" title="All 2 branches covered.">        if (barrier.barrierTop.getLifeTime() == 3) {</span>
+<span class="fc" id="L175">            barrier.barrierTop.setImage(barrier.barrierTop.firstImage);</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        } else if (barrier.barrierTop.getLifeTime() == 2) {</span>
+<span class="fc" id="L177">            barrier.barrierTop.setImage(barrier.barrierTop.SecondImage);</span>
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">        } else if (barrier.barrierTop.getLifeTime() == 1) {</span>
+<span class="fc" id="L179">            barrier.barrierTop.setImage(barrier.barrierTop.thirdImage);</span>
+        }
+<span class="fc" id="L181">    }</span>
+
+    public void setBarrierNormals(BarrierNormal barrierNormal){
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        if (barrierNormal.getLifeTime() == 3) {</span>
+<span class="fc" id="L185">            barrierNormal.setImage(barrierNormal.firstImage);</span>
+        }
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">        if (barrierNormal.getLifeTime() == 2) {</span>
+<span class="nc" id="L188">            barrierNormal.setImage(barrierNormal.SecondImage);</span>
+        }
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">        if (barrierNormal.getLifeTime() == 1) {</span>
+<span class="nc" id="L191">            barrierNormal.setImage(barrierNormal.thirdImage);</span>
+        }
+<span class="fc" id="L193">    }</span>
+
+    public void BarrierImage(){
+<span class="fc bfc" id="L196" title="All 2 branches covered.">        for (int i = 0; i &lt; barriers.size(); i++) {</span>
+<span class="fc" id="L197">            setBarrierLeft(barriers.get(i));</span>
+<span class="fc" id="L198">            setBarrierRight(barriers.get(i));</span>
+<span class="fc" id="L199">            setBarrierTop(barriers.get(i));</span>
+<span class="fc bfc" id="L200" title="All 2 branches covered.">            for (int j = 0; j &lt; barriers.get(i).barrierNormals.size(); j++) {</span>
+<span class="fc" id="L201">                setBarrierNormals(barriers.get(i).barrierNormals.get(j));</span>
+            }
+        }
+<span class="fc" id="L204">    }</span>
+
+    public void setInvaders(){
+<span class="fc" id="L207">        final int gap = 40;</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">        for (int i = 0; i &lt; 4; i++) {</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">            for (int j = 0; j &lt; 10; j++) {</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">                if (i == 0){</span>
+<span class="fc" id="L211">                    invaders.add(new ArmouredInvader(120 + j * gap, 50 + i * gap));</span>
+                }
+<span class="fc bfc" id="L213" title="All 2 branches covered.">                else if (i == 1){</span>
+<span class="fc" id="L214">                    invaders.add(new PowerInvader(120 + j * gap, 50 + i * gap));</span>
+                }
+                else {
+<span class="fc" id="L217">                    invaders.add(new Invader(120 + j * gap, 50 + i * gap));</span>
+                }
+            }
+        }
+<span class="fc" id="L221">    }</span>
+    public void invaderFireProjectile(int index){
+        Projectile newP;
+<span class="fc" id="L224">        Invader invader = invaders.get(index);</span>
+<span class="pc bpc" id="L225" title="1 of 2 branches missed.">        if (invader instanceof PowerInvader) {</span>
+<span class="nc" id="L226">            newP = invaders.get(index).fire(powerProjectile.image);</span>
+        } else
+<span class="fc" id="L228">            newP = invaders.get(index).fire(projectile.image);</span>
+<span class="fc" id="L229">        projectiles.add(newP);</span>
+<span class="fc" id="L230">    }</span>
+
+    public void setup(){
+<span class="fc" id="L233">        find = true;</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">        if (fireRate &gt; 60){</span>
+<span class="fc" id="L235">            fireRate -= 60;</span>
+        }
+<span class="fc" id="L237">        projectiles = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L238">        font = createFont(&quot;PressStart2P-Regular.ttf&quot;,16);</span>
+<span class="fc" id="L239">        textFont(font);</span>
+<span class="fc" id="L240">        tank = new Tank();</span>
+<span class="fc" id="L241">        projectile = new Projectile();</span>
+<span class="fc" id="L242">        powerProjectile = new PowerProjectile();</span>
+<span class="fc" id="L243">        invaders = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L244">        barriers = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L245">        setInvaders();</span>
+<span class="fc" id="L246">        loadInvader();</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">        for (int k = 0; k &lt; 3; k++){</span>
+<span class="fc" id="L248">            barriers.add(new Barrier());</span>
+        }
+<span class="fc" id="L250">        tank.setImage(loadImage(&quot;tank1.png&quot;));</span>
+<span class="fc" id="L251">        sucess  = loadImage(&quot;nextlevel.png&quot;);</span>
+<span class="fc" id="L252">        tank.x = 640/2 - tank.image.width/2;</span>
+<span class="fc" id="L253">        tank.y = 480 - tank.image.height - 10;</span>
+<span class="fc" id="L254">        projectile.setImage(loadImage(&quot;projectile.png&quot;));</span>
+<span class="fc" id="L255">        powerProjectile.setImage(loadImage(&quot;projectile_lg.png&quot;));</span>
+<span class="fc bfc" id="L256" title="All 2 branches covered.">        for (int i = 0; i &lt; invaders.size(); i++) {</span>
+<span class="fc" id="L257">            invaders.get(i).setImage(invaders.get(i).moveHorizontal);</span>
+        }
+
+<span class="fc bfc" id="L260" title="All 2 branches covered.">        for(int i = 0; i &lt; barriers.size(); i++){</span>
+<span class="fc" id="L261">            barriers.get(i).barrierTop.setFirstImage(loadImage(&quot;barrier_top1.png&quot;));</span>
+<span class="fc" id="L262">            barriers.get(i).barrierTop.setSecondImage(loadImage(&quot;barrier_top2.png&quot;));</span>
+<span class="fc" id="L263">            barriers.get(i).barrierTop.setThirdImage(loadImage(&quot;barrier_top3.png&quot;));</span>
+<span class="fc" id="L264">            barriers.get(i).barrierRight.setFirstImage(loadImage(&quot;barrier_right1.png&quot;));</span>
+<span class="fc" id="L265">            barriers.get(i).barrierRight.setSecondImage(loadImage(&quot;barrier_right2.png&quot;));</span>
+<span class="fc" id="L266">            barriers.get(i).barrierRight.setThirdImage(loadImage(&quot;barrier_right3.png&quot;));</span>
+<span class="fc" id="L267">            barriers.get(i).barrierLeft.setFirstImage(loadImage(&quot;barrier_left1.png&quot;));</span>
+<span class="fc" id="L268">            barriers.get(i).barrierLeft.setSecondImage(loadImage(&quot;barrier_left2.png&quot;));</span>
+<span class="fc" id="L269">            barriers.get(i).barrierLeft.setThirdImage(loadImage(&quot;barrier_left3.png&quot;));</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">            for (int j = 0; j &lt; barriers.get(i).barrierNormals.size(); j++){</span>
+<span class="fc" id="L271">                barriers.get(i).barrierNormals.get(j).setFirstImage(loadImage(&quot;barrier_solid1.png&quot;));</span>
+<span class="fc" id="L272">                barriers.get(i).barrierNormals.get(j).setSecondImage(loadImage(&quot;barrier_solid2.png&quot;));</span>
+<span class="fc" id="L273">                barriers.get(i).barrierNormals.get(j).setThirdImage(loadImage(&quot;barrier_solid3.png&quot;));</span>
+            }
+        }
+<span class="fc" id="L276">        barriers.get(0).x = 154;</span>
+<span class="fc" id="L277">        barriers.get(1).x = 640/2 - (barriers.get(1).barrierLeft.firstImage.width + barriers.get(1).barrierTop.firstImage.width + barriers.get(1).barrierRight.firstImage.width)/2;</span>
+<span class="fc" id="L278">        barriers.get(2).x = 462;</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">        for (int i = 0; i &lt; barriers.size(); i++){</span>
+<span class="fc" id="L280">            barriers.get(i).y = tank.y - 60;</span>
+        }
+<span class="fc" id="L282">        BarrierImage();</span>
+<span class="fc" id="L283">        setBarrierLifeTimes();</span>
+
+<span class="fc" id="L285">        frameRate(60);</span>
+<span class="fc" id="L286">    }</span>
+    public Tank getTank(){
+<span class="fc" id="L288">        return this.tank;</span>
+    }
+
+    public void tankMove(){
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">        if (tank.getMoveLeft()) {</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">            if (find)</span>
+<span class="nc" id="L294">                tank.moveLeft();</span>
+        }
+
+<span class="pc bpc" id="L297" title="1 of 2 branches missed.">        if (tank.getMoveRight()) {</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">            if (find)</span>
+<span class="nc" id="L299">                tank.moveRight();</span>
+        }
+<span class="fc" id="L301">    }</span>
+
+    public void drawTank(){
+<span class="pc bpc" id="L304" title="1 of 2 branches missed.">        if (find)</span>
+<span class="fc" id="L305">            image(tank.image, tank.x, tank.y);</span>
+<span class="fc" id="L306">    }</span>
+    public void drawInvader(){
+<span class="fc bfc" id="L308" title="All 2 branches covered.">        for (int i = 0; i &lt; invaders.size(); i++) {</span>
+<span class="pc bpc" id="L309" title="1 of 2 branches missed.">            if (find)</span>
+<span class="fc" id="L310">                image(invaders.get(i).image, invaders.get(i).x, invaders.get(i).y);</span>
+        }
+<span class="fc" id="L312">    }</span>
+
+
+
+    public void drawBarrier(int i){
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">        if (barriers.get(i).barrierLeft.lifeTime &gt; 0)</span>
+<span class="fc" id="L318">            image(barriers.get(i).barrierLeft.image, barriers.get(i).barrierLeft.x, barriers.get(i).barrierLeft.y);</span>
+<span class="fc" id="L319">        barriers.get(i).barrierTop.x = 154 * (i + 1) + barriers.get(i).barrierLeft.firstImage.width;</span>
+<span class="fc" id="L320">        barriers.get(i).barrierTop.y = barriers.get(i).y;</span>
+<span class="pc bpc" id="L321" title="1 of 2 branches missed.">        if (barriers.get(i).barrierTop.lifeTime &gt; 0)</span>
+<span class="fc" id="L322">            image(barriers.get(i).barrierTop.image, barriers.get(i).barrierTop.x, barriers.get(i).barrierTop.y);</span>
+<span class="fc" id="L323">        barriers.get(i).barrierRight.x = 154 * (i + 1) + barriers.get(i).barrierLeft.firstImage.width + barriers.get(i).barrierTop.firstImage.width;</span>
+<span class="fc" id="L324">        barriers.get(i).barrierRight.y = barriers.get(i).y;</span>
+<span class="pc bpc" id="L325" title="1 of 2 branches missed.">        if (barriers.get(i).barrierRight.lifeTime &gt; 0)</span>
+<span class="fc" id="L326">            image(barriers.get(i).barrierRight.image, barriers.get(i).barrierRight.x, barriers.get(i).barrierRight.y);</span>
+<span class="fc" id="L327">    }</span>
+
+    public void drawBarrierNormal(int i){
+<span class="fc bfc" id="L330" title="All 2 branches covered.">        for (int j = 0; j &lt; 4; j++){</span>
+<span class="pc bpc" id="L331" title="1 of 2 branches missed.">            if (barriers.get(i).barrierNormals.get(j).lifeTime &gt; 0)</span>
+<span class="fc" id="L332">                image(barriers.get(i).barrierNormals.get(j).image, barriers.get(i).barrierNormals.get(j).x, barriers.get(i).barrierNormals.get(j).y);</span>
+        }
+<span class="fc" id="L334">    }</span>
+
+    public void drawBarrierNormals(int i){
+<span class="fc" id="L337">        barriers.get(i).barrierNormals.get(1).x = 154 * (i + 1) + barriers.get(i).barrierLeft.firstImage.width + barriers.get(i).barrierTop.firstImage.width;</span>
+<span class="fc" id="L338">        barriers.get(i).barrierNormals.get(1).y = barriers.get(i).y + barriers.get(i).barrierTop.firstImage.height;</span>
+<span class="fc" id="L339">        barriers.get(i).barrierNormals.get(2).x = 154 * (i + 1);</span>
+<span class="fc" id="L340">        barriers.get(i).barrierNormals.get(2).y = barriers.get(i).y + barriers.get(i).barrierTop.firstImage.height + barriers.get(i).barrierNormals.get(i).firstImage.height;</span>
+<span class="fc" id="L341">        barriers.get(i).barrierNormals.get(3).x = 154 * (i + 1) + barriers.get(i).barrierLeft.firstImage.width + barriers.get(i).barrierTop.firstImage.width;</span>
+<span class="fc" id="L342">        barriers.get(i).barrierNormals.get(3).y = barriers.get(i).y + barriers.get(i).barrierTop.firstImage.height + barriers.get(i).barrierNormals.get(i).firstImage.height;</span>
+<span class="fc" id="L343">        drawBarrierNormal(i);</span>
+<span class="fc" id="L344">    }</span>
+
+    public void updateBarrierImage(){
+<span class="fc bfc" id="L347" title="All 2 branches covered.">        for (int i = 0; i &lt; barriers.size(); i++) {</span>
+<span class="fc bfc" id="L348" title="All 2 branches covered.">            for (int j = 0; j &lt; 3; j++) {</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">                if (j == 0) {</span>
+<span class="fc" id="L350">                    barriers.get(i).barrierLeft.x = 154 * (i + 1);</span>
+<span class="fc" id="L351">                    barriers.get(i).barrierLeft.y = barriers.get(i).y;</span>
+<span class="fc" id="L352">                    drawBarrier(i);</span>
+                } else {
+<span class="fc" id="L354">                    barriers.get(i).barrierNormals.get(0).x = 154 * (i + 1);</span>
+<span class="fc" id="L355">                    barriers.get(i).barrierNormals.get(0).y = barriers.get(i).y + barriers.get(i).barrierTop.firstImage.height;</span>
+<span class="fc" id="L356">                    drawBarrierNormals(i);</span>
+                }
+            }
+        }
+<span class="fc" id="L360">    }</span>
+
+    public void checkInvaderLose(){
+<span class="fc bfc" id="L363" title="All 2 branches covered.">        for (Invader invader : invaders) {</span>
+<span class="fc bfc" id="L364" title="All 2 branches covered.">            for (Barrier barrier : barriers) {</span>
+<span class="pc bpc" id="L365" title="2 of 4 branches missed.">                if (check_collection(barrier.barrierLeft, invader) || invader.y == (barrier.barrierLeft.y - barrier.barrierLeft.image.height - 10)) {</span>
+<span class="nc" id="L366">                    find = false;</span>
+                }
+<span class="pc bpc" id="L368" title="2 of 4 branches missed.">                if (check_collection(barrier.barrierTop, invader) || invader.y == (barrier.barrierTop.y - barrier.barrierTop.image.height - 10)) {</span>
+<span class="nc" id="L369">                    find = false;</span>
+                }
+<span class="pc bpc" id="L371" title="1 of 2 branches missed.">                if (check_collection(barrier.barrierRight, invader)) {</span>
+<span class="nc" id="L372">                    find = false;</span>
+                }
+<span class="fc bfc" id="L374" title="All 2 branches covered.">                for (int j = 0; j &lt; barrier.barrierNormals.size(); j++) {</span>
+<span class="pc bpc" id="L375" title="1 of 2 branches missed.">                    if (check_collection(barrier.barrierNormals.get(j), invader)) {</span>
+<span class="nc" id="L376">                        find = false;</span>
+                    }
+                }
+<span class="fc" id="L379">            }</span>
+<span class="fc" id="L380">        }</span>
+<span class="fc" id="L381">    }</span>
+
+    public void checktankLose(){
+<span class="fc bfc" id="L384" title="All 2 branches covered.">        if (tank.life &lt;= 0) {</span>
+<span class="fc" id="L385">            find = false;</span>
+        }
+<span class="fc" id="L387">    }</span>
+
+    public void setBarrierLifeTimes(){
+<span class="fc" id="L390">        barrierLifeTimes = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L391" title="1 of 2 branches missed.">        if (barriers != null) {</span>
+<span class="fc bfc" id="L392" title="All 2 branches covered.">            for (Barrier barrier : barriers){</span>
+<span class="fc" id="L393">                barrierLifeTimes.add(barrier.barrierLeft);</span>
+<span class="fc" id="L394">                barrierLifeTimes.add(barrier.barrierRight);</span>
+<span class="fc" id="L395">                barrierLifeTimes.add(barrier.barrierTop);</span>
+<span class="fc" id="L396">                barrierLifeTimes.addAll(barrier.barrierNormals);</span>
+<span class="fc" id="L397">            }</span>
+        }
+<span class="fc" id="L399">    }</span>
+
+    public void setInvaderDirectinImage(){
+<span class="pc bpc" id="L402" title="1 of 4 branches missed.">        if (invaders.get(0).move == InvaderDirection.moveDown1 || invaders.get(0).move == InvaderDirection.moveDown2) {</span>
+<span class="fc bfc" id="L403" title="All 2 branches covered.">            for (int i = 0; i &lt; invaders.size(); i++) {</span>
+<span class="pc bpc" id="L404" title="1 of 2 branches missed.">                if (find)</span>
+<span class="fc" id="L405">                    invaders.get(i).setImage(invaders.get(i).moveDown);</span>
+            }
+<span class="fc" id="L407">            countMove = 8;</span>
+        } else {
+<span class="fc bfc" id="L409" title="All 2 branches covered.">            for (int i = 0; i &lt; invaders.size(); i++) {</span>
+<span class="pc bpc" id="L410" title="1 of 2 branches missed.">                if (find)</span>
+<span class="fc" id="L411">                    invaders.get(i).setImage(invaders.get(i).moveHorizontal);</span>
+            }
+<span class="fc" id="L413">            countMove = 30;</span>
+        }
+<span class="fc" id="L415">    }</span>
+
+
+
+    public void settings() {
+<span class="fc" id="L420">        size(640, 480);</span>
+
+<span class="fc" id="L422">    }</span>
+    //    check the score of power invader
+    public static void checkPowerInvaderScore(Invader invader){
+<span class="fc" id="L425">        App.score += 250;</span>
+<span class="fc" id="L426">    }</span>
+    //    check the socre of armoured invader
+    public static void checkArmouredInvaderScore(Invader invader) {
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if (((ArmouredInvader) invader).checkLifeTime()) {</span>
+<span class="nc" id="L430">            App.score += 250;</span>
+        }
+<span class="nc" id="L432">    }</span>
+    //    show the tank's life time
+    public void showTankLiftTime(){
+<span class="pc bpc" id="L435" title="3 of 4 branches missed.">        switch (tank.life) {</span>
+            case 1:
+<span class="nc" id="L437">                image(loadImage(&quot;tank1.png&quot;), 10, 80);</span>
+<span class="nc" id="L438">                break;</span>
+            case 2:
+<span class="nc" id="L440">                image(loadImage(&quot;tank1.png&quot;), 10, 80);</span>
+<span class="nc" id="L441">                image(loadImage(&quot;tank1.png&quot;), 10, 110);</span>
+<span class="nc" id="L442">                break;</span>
+            case 3:
+<span class="fc" id="L444">                image(loadImage(&quot;tank1.png&quot;), 10, 80);</span>
+<span class="fc" id="L445">                image(loadImage(&quot;tank1.png&quot;), 10, 110);</span>
+<span class="fc" id="L446">                image(loadImage(&quot;tank1.png&quot;), 10, 140);</span>
+                break;
+        }
+<span class="fc" id="L449">    }</span>
+
+
+    public static void checkScore(Invader invader){
+<span class="fc bfc" id="L453" title="All 2 branches covered.">        if (invader instanceof PowerInvader){</span>
+<span class="fc" id="L454">            checkPowerInvaderScore(invader);</span>
+<span class="pc bpc" id="L455" title="1 of 2 branches missed.">        } else if (invader instanceof ArmouredInvader){</span>
+<span class="nc" id="L456">            checkArmouredInvaderScore(invader);</span>
+        } else {
+<span class="fc" id="L458">            App.score += 100;</span>
+        }
+<span class="fc" id="L460">    }</span>
+
+    public void invaderChangeDirection(){
+<span class="nc bnc" id="L463" title="All 2 branches missed.">        for (Invader invader : invaders){</span>
+<span class="nc" id="L464">            invader.change();</span>
+<span class="nc" id="L465">        }</span>
+<span class="nc" id="L466">    }</span>
+
+    public boolean checkBarriers(){
+<span class="pc bpc" id="L469" title="1 of 2 branches missed.">        for (int i = 0; i &lt; barriers.size(); i++){</span>
+<span class="fc bfc" id="L470" title="All 2 branches covered.">            if (barriers.get(i).barrierLeft.getLifeTime() &gt; 0)</span>
+<span class="fc" id="L471">                return false;</span>
+<span class="fc bfc" id="L472" title="All 2 branches covered.">            if (barriers.get(i).barrierRight.getLifeTime() &gt; 0)</span>
+<span class="fc" id="L473">                return false;</span>
+<span class="pc bpc" id="L474" title="1 of 2 branches missed.">            if (barriers.get(i).barrierTop.getLifeTime() &gt; 0)</span>
+<span class="fc" id="L475">                return false;</span>
+<span class="nc bnc" id="L476" title="All 2 branches missed.">            for (int j = 0; j &lt; barriers.get(i).barrierNormals.size(); j++){</span>
+<span class="nc bnc" id="L477" title="All 2 branches missed.">                if (barriers.get(i).barrierNormals.get(j).getLifeTime() &gt; 0)</span>
+<span class="nc" id="L478">                    return false;</span>
+            }
+        }
+<span class="nc" id="L481">        return true;</span>
+    }
+
+    public void checkInvaderCollision(){
+<span class="fc bfc" id="L485" title="All 2 branches covered.">        for (Invader invader : invaders) {</span>
+<span class="pc bpc" id="L486" title="1 of 2 branches missed.">            for (int j = 0; j &lt; projectiles.size(); j++) {</span>
+<span class="nc bnc" id="L487" title="All 4 branches missed.">                if (check_collection(invader, projectiles.get(j)) &amp;&amp; projectiles.get(j).speed == 1) {</span>
+<span class="nc bnc" id="L488" title="All 2 branches missed.">                    if (invader instanceof ArmouredInvader) {</span>
+<span class="nc" id="L489">                        ((ArmouredInvader) invader).minusLife();</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">                        if (((ArmouredInvader) invader).checkLifeTime()) {</span>
+<span class="nc" id="L491">                            removeInvader.add(invader);</span>
+                        }
+                    } else {
+<span class="nc" id="L494">                        removeInvader.add(invader);</span>
+                    }
+<span class="nc" id="L496">                    checkScore(invader);</span>
+<span class="nc" id="L497">                    removeProjectile.add(projectiles.get(j));</span>
+                }
+            }
+<span class="fc" id="L500">        }</span>
+<span class="fc" id="L501">    }</span>
+
+    public void checkBarrierCollision(){
+<span class="pc bpc" id="L504" title="1 of 2 branches missed.">        for (Projectile projectile : projectiles){</span>
+<span class="nc bnc" id="L505" title="All 2 branches missed.">            for (int i = 0; i &lt; barrierLifeTimes.size(); i++){</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">                if (check_collection(barrierLifeTimes.get(i),projectile)){</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                    if (barrierLifeTimes.get(i).lifeTime &gt; 0)</span>
+<span class="nc" id="L508">                        removeProjectile.add(projectile);</span>
+<span class="nc bnc" id="L509" title="All 2 branches missed.">                    if (projectile instanceof PowerProjectile) {</span>
+<span class="nc" id="L510">                        barrierLifeTimes.get(i).setLifeTime(3);</span>
+                    } else {
+<span class="nc" id="L512">                        barrierLifeTimes.get(i).setLifeTime(1);</span>
+                    }
+                }
+            }
+<span class="nc" id="L516">        }</span>
+<span class="fc" id="L517">    }</span>
+
+    public ArrayList&lt;Invader&gt; updateInvader(){
+<span class="fc" id="L520">        ArrayList&lt;Invader&gt; newInvader = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L521" title="All 2 branches covered.">        for (Invader invader : invaders) {</span>
+<span class="fc" id="L522">            boolean found = false;</span>
+<span class="pc bpc" id="L523" title="1 of 2 branches missed.">            for (Invader inv : removeInvader) {</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">                if (invader == inv)</span>
+<span class="nc" id="L525">                    found = true;</span>
+<span class="nc" id="L526">            }</span>
+<span class="pc bpc" id="L527" title="1 of 2 branches missed.">            if (!found)</span>
+<span class="fc" id="L528">                newInvader.add(invader);</span>
+<span class="fc" id="L529">        }</span>
+<span class="fc" id="L530">        return newInvader;</span>
+    }
+
+    public void checkTankCollision(){
+<span class="fc bfc" id="L534" title="All 2 branches covered.">        for (Projectile projectile : projectiles) {</span>
+<span class="pc bpc" id="L535" title="1 of 2 branches missed.">            if (tank.setLife(projectile)) {</span>
+<span class="fc" id="L536">                removeProjectile.add(projectile);</span>
+            }
+<span class="fc" id="L538">        }</span>
+<span class="fc" id="L539">    }</span>
+
+    public void keyPressed() {
+<span class="pc bpc" id="L542" title="1 of 2 branches missed.">        if (keyCode == LEFT) {</span>
+<span class="nc" id="L543">            tank.setMoveLeft(true);</span>
+<span class="pc bpc" id="L544" title="1 of 2 branches missed.">        } else if(keyCode == RIGHT) {</span>
+<span class="nc" id="L545">            tank.setMoveRight(true);</span>
+<span class="pc bpc" id="L546" title="1 of 2 branches missed.">        } else if(keyCode == UP){</span>
+<span class="nc" id="L547">            fire = true;</span>
+        }
+<span class="fc" id="L549">    }</span>
+
+    public void keyReleased() {
+<span class="pc bpc" id="L552" title="1 of 2 branches missed.">        if (keyCode == LEFT){</span>
+<span class="fc" id="L553">            tank.setMoveLeft(false);</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">        } else if(keyCode == RIGHT) {</span>
+<span class="nc" id="L555">            tank.setMoveRight(false);</span>
+<span class="nc bnc" id="L556" title="All 2 branches missed.">        } else if(keyCode == UP){</span>
+<span class="nc" id="L557">            fire = false;</span>
+        }
+<span class="fc" id="L559">    }</span>
+
+    public static &lt;T extends Game&gt; boolean check_collection(T r1,T r2){
+<span class="pc bpc" id="L562" title="1 of 8 branches missed.">        return r1.x &lt; (r2.x + r2.image.width) &amp;&amp; (r1.x + r1.image.width) &gt; r2.x &amp;&amp; r1.y &lt; (r2.y + r2.image.height) &amp;&amp; (r1.image.height + r1.y) &gt; r2.y;</span>
+    }
+
+    public void draw() {
+<span class="pc bpc" id="L566" title="1 of 2 branches missed.">        if (drawMenu) {</span>
+<span class="fc" id="L567">            textSize(20);</span>
+<span class="fc" id="L568">            background(0);</span>
+<span class="fc" id="L569">            image(loadImage(&quot;images.jpg&quot;),-60,-100);</span>
+<span class="fc" id="L570">            text(&quot;START THE GAME&quot;, 180, 250);</span>
+<span class="fc bfc" id="L571" title="All 2 branches covered.">            if (choose){</span>
+<span class="fc" id="L572">                background(0);</span>
+<span class="fc" id="L573">                image(loadImage(&quot;images.jpg&quot;),-60,-100);</span>
+<span class="fc" id="L574">                text(&quot;EAZY&quot;,200,180);</span>
+//                System.out.println(mousex);
+<span class="fc" id="L576">                text(&quot;NORM&quot;,200,280);</span>
+<span class="fc" id="L577">                text(&quot;HARD&quot;,200,380);</span>
+            }
+        }
+<span class="fc bfc" id="L580" title="All 2 branches covered.">        if (drawing) {</span>
+<span class="fc" id="L581">            drawMenu = false;</span>
+<span class="pc bpc" id="L582" title="1 of 2 branches missed.">            if (invaders.size() &gt; 0) {</span>
+<span class="fc" id="L583">                state.changeTank(this.tank);</span>
+//                System.out.println(tank.tankFireRate);
+//              System.out.println(state instanceof Hard);
+<span class="fc" id="L586">                currentTime = System.currentTimeMillis();</span>
+<span class="fc" id="L587">                background(0);</span>
+<span class="fc" id="L588">                Random random = new Random();</span>
+<span class="fc" id="L589">                int index = 0;</span>
+<span class="pc bpc" id="L590" title="1 of 2 branches missed.">                if (find) {</span>
+<span class="fc" id="L591">                    image(loadImage(&quot;WechatIMG5.jpeg&quot;), -38, -30);</span>
+<span class="fc" id="L592">                    showTankLiftTime();</span>
+                }
+<span class="fc" id="L594">                String a = &quot;score&quot;;</span>
+<span class="fc" id="L595">                textSize(15);</span>
+<span class="fc" id="L596">                text(a, 10, 20);</span>
+<span class="fc" id="L597">                text(score, 100, 20);</span>
+<span class="fc" id="L598">                text(&quot;HIGHEST SCORE&quot;,440,20);</span>
+<span class="fc" id="L599">                text(highestScore, 530, 40);</span>
+<span class="fc" id="L600">                removeInvader = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L601">                removeProjectile = new ArrayList&lt;&gt;();</span>
+//                check invader collision here
+<span class="fc" id="L603">                checkInvaderCollision();</span>
+//                update invaders
+<span class="fc" id="L605">                this.invaders = updateInvader();</span>
+
+                //            check barrier collision here
+<span class="fc" id="L608">                checkBarrierCollision();</span>
+                //            check tank hit by projectile
+<span class="fc" id="L610">                checkTankCollision();</span>
+
+<span class="fc" id="L612">                checktankLose();</span>
+
+<span class="fc" id="L614">                ArrayList&lt;Projectile&gt; newProjectiles = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L615" title="1 of 2 branches missed.">                for (Projectile projectile : projectiles) {</span>
+<span class="nc" id="L616">                    boolean found = false;</span>
+<span class="nc bnc" id="L617" title="All 2 branches missed.">                    for (Projectile pro : removeProjectile) {</span>
+<span class="nc bnc" id="L618" title="All 2 branches missed.">                        if (projectile == pro)</span>
+<span class="nc" id="L619">                            found = true;</span>
+<span class="nc" id="L620">                    }</span>
+<span class="nc bnc" id="L621" title="All 2 branches missed.">                    if (!found)</span>
+<span class="nc" id="L622">                        newProjectiles.add(projectile);</span>
+<span class="nc" id="L623">                }</span>
+<span class="fc" id="L624">                this.projectiles = newProjectiles;</span>
+
+<span class="fc" id="L626">                BarrierImage();</span>
+<span class="pc bpc" id="L627" title="1 of 2 branches missed.">                if (find) {</span>
+<span class="fc" id="L628">                    updateBarrierImage();</span>
+
+                }
+
+
+<span class="pc bpc" id="L633" title="1 of 2 branches missed.">                if (checkBarriers()) {</span>
+<span class="nc" id="L634">                    background(0);</span>
+<span class="nc" id="L635">                    find = false;</span>
+                }
+<span class="pc bpc" id="L637" title="1 of 2 branches missed.">                if (!find) {</span>
+<span class="nc bnc" id="L638" title="All 2 branches missed.">                    if (score &gt; highestScore)</span>
+<span class="nc" id="L639">                        highestScore = score;</span>
+<span class="nc" id="L640">                    image(loadImage(&quot;gameover.png&quot;), 275, 240);</span>
+<span class="nc bnc" id="L641" title="All 2 branches missed.">                    if (restart == 120){</span>
+<span class="nc" id="L642">                        restart = 0;</span>
+<span class="nc" id="L643">                        setup();</span>
+<span class="nc" id="L644">                        score = 0;</span>
+<span class="nc" id="L645">                        fireRate = 360;</span>
+<span class="nc" id="L646">                        counterTime = 0;</span>
+                    }
+<span class="nc" id="L648">                    restart++;</span>
+
+                }
+
+                // draw all objects
+<span class="fc" id="L653">                drawInvader();</span>
+<span class="fc" id="L654">                drawTank();</span>
+<span class="pc bpc" id="L655" title="1 of 2 branches missed.">                if (countMove == 0) {</span>
+<span class="nc" id="L656">                    invaderChangeDirection();</span>
+<span class="nc" id="L657">                    setInvaderDirectinImage();</span>
+                }
+
+<span class="fc bfc" id="L660" title="All 2 branches covered.">                if (counter % 2 == 0) {</span>
+<span class="pc bpc" id="L661" title="1 of 2 branches missed.">                    if (invaders.size() &gt; 0) {</span>
+<span class="pc bpc" id="L662" title="1 of 2 branches missed.">                        if (find){</span>
+<span class="fc bfc" id="L663" title="All 2 branches covered.">                            for (Invader invader : invaders){</span>
+<span class="fc" id="L664">                                invader.setMove();</span>
+<span class="fc" id="L665">                            }</span>
+                        }
+<span class="fc" id="L667">                        countMove--;</span>
+                    }
+                }
+<span class="fc" id="L670">                checkInvaderLose();</span>
+<span class="pc bpc" id="L671" title="1 of 2 branches missed.">                if (invaders.size() &gt; 0) {</span>
+<span class="fc" id="L672">                    index = random.nextInt(invaders.size());</span>
+                }
+
+
+                // projectile
+<span class="pc bpc" id="L677" title="1 of 2 branches missed.">                for (Projectile p : projectiles) {</span>
+<span class="nc bnc" id="L678" title="All 2 branches missed.">                    if (find)</span>
+<span class="nc" id="L679">                        image(p.image, p.x, p.y);</span>
+<span class="nc" id="L680">                }</span>
+                // invader
+<span class="fc bfc" id="L682" title="All 2 branches covered.">                if (canFire()) {</span>
+<span class="fc" id="L683">                    invaderFireProjectile(index);</span>
+                }
+
+                // game logic
+                // movement
+<span class="fc" id="L688">                tankMove();</span>
+
+<span class="pc bpc" id="L690" title="1 of 2 branches missed.">                if (fire) {</span>
+<span class="nc bnc" id="L691" title="All 2 branches missed.">                    if (tank.canFire()) {</span>
+<span class="nc" id="L692">                        Projectile newP = tank.fire(projectile.image);</span>
+<span class="nc" id="L693">                        projectiles.add(newP);</span>
+                    }
+                }
+
+<span class="fc bfc" id="L697" title="All 2 branches covered.">                for (Projectile p : projectiles) {</span>
+<span class="pc bpc" id="L698" title="1 of 2 branches missed.">                    if (find)</span>
+<span class="fc" id="L699">                        p.move();</span>
+<span class="fc" id="L700">                }</span>
+
+<span class="fc" id="L702">                tank.fireCount++;</span>
+<span class="fc" id="L703">                counter++;</span>
+<span class="fc" id="L704">                invaderFire++;</span>
+<span class="fc bfc" id="L705" title="All 2 branches covered.">                if (counterTime % 60 == 0) {</span>
+<span class="fc" id="L706">                    time = counterTime / 60;</span>
+                }
+<span class="fc" id="L708">                String times = &quot; s&quot;;</span>
+<span class="fc" id="L709">                textSize(15);</span>
+<span class="pc bpc" id="L710" title="1 of 2 branches missed.">                if (find)</span>
+<span class="fc" id="L711">                    text(time + times, 10, 60);</span>
+<span class="fc" id="L712">                counterTime++;</span>
+<span class="fc" id="L713">            } else {</span>
+<span class="nc" id="L714">                image(sucess, 640 / 2 - sucess.width / 2, 480 / 2);</span>
+<span class="nc bnc" id="L715" title="All 2 branches missed.">                if (System.currentTimeMillis() - currentTime &gt; 2000) {</span>
+<span class="nc" id="L716">                    setup();</span>
+                }
+            }
+        }
+
+
+
+
+<span class="fc" id="L724">    }</span>
+    // check collection
+
+    // fire
+
+
+
+
+//    // 3 boolean
+
+
+
+
+
+<span class="nc" id="L738">    public static void main(String[] args) { PApplet.main(&quot;invadem.App&quot;); }</span>
+
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>
